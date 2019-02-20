@@ -1,0 +1,27 @@
+Project2 Milestone
+
+Tiantu Xu
+
+The project is divided into two parts. The first part is the exception handler, the second part is procfs. As the procfs part looks simpler to complete than the exception handler part, and in order to distribute the work effort more evenly, I would also go through the exception handler part as soon as I finished the procfs part.
+
+The major feature is that /proc/PID/maps should show the page is present or not, and how many times the page has been reached. The numbers and characters should be printed out in 8*4 format for each line.
+
+We will manipulates the page table entry for each mapped program page, and modify the page table entry to be “invalid” so that the program’s next memory access to the page will trigger a hardware exception. Such an exception will go from the low-level exception handler “up” in the kernel. Our code handles the exception before it is sent to the Linux’s high-level exception handling code, and do reference accounting.
+
+There should be some modification lies in pgtable-2level.h, pgtable-2level-hwdef.h and pgtable-2level-types.h, in which it defines the basic structure of ARM page tables and PTEs. 
+The major modification of exception handler lies in the following functions:
+1. ../include/asm/proc-fns.h
+_data_abort; dcache_clean_area…
+2. proc-macros.S & proc-v7.S
+define_processor_functions
+
+fsr-2level.c and fault.c could be used to debug.
+
+The code starts counting referneces for a programs’s pages when the first read from a processes’s /proc/PID/maps happens. Handling the repeated exceptions are harder. We currently do not have a agreement on the choice, probably we will try both and see which would be better to fit into our kernel.
+
+In the procfs part, the task_mmu.c is where the major modification happens. The function show_map_vma is where the map is printed, and we have to connect this with the returned count by exception handler and print out the count of which page table is reached. show_pid_map, proc_pid_maps_op and some other functions should also be modified.
+
+I will soon be able to print some custom strings in /proc/PID/maps, and by doing that, I would also join my teammate for the exception handler part. We will use both printk() and gdb for different debug purposes. 
+
+
+
